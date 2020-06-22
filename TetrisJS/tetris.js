@@ -3,41 +3,38 @@ const ctx = cvs.getContext("2d");
 const scoreElement = document.getElementById("score");
 
 const linha = 20;
-const coluna = 10;
-const Quad = 20;
-const VACANT = "aqua"; // cor dos quadrados
+const col = 10;
+const sq = 20;
+const quad = "WHITE";
 
-// desenha o Quad
-function drawQuad(x,y,cor){
+// Desenhar os quadrados
+function desenhaQuad(x,y,cor){
     ctx.fillStyle = cor;
-    ctx.fillRect(x*Quad,y*Quad,Quad,Quad);
+    ctx.fillRect(x*sq,y*sq,sq,sq);
 
     ctx.strokeStyle = "BLACK";
-    ctx.strokeRect(x*Quad,y*Quad,Quad,Quad);
+    ctx.strokeRect(x*sq,y*sq,sq,sq);
 }
 
 // Cria o tabuleiro
-
-let board = [];
+let bord = [];
 for( r = 0; r <linha; r++){
-    board[r] = [];
-    for(c = 0; c < coluna; c++){
-        board[r][c] = VACANT;
+    bord[r] = [];
+    for(c = 0; c < col; c++){
+        bord[r][c] = quad;
     }
 }
-
 // Desenha o tabuleiro
-function drawBoard(){
+function tab(){
     for( r = 0; r <linha; r++){
-        for(c = 0; c < coluna; c++){
-            drawQuad(c,r,board[r][c]);
+        for(c = 0; c < col; c++){
+            desenhaQuad(c,r,bord[r][c]);
         }
     }
 }
+tab();
 
-drawBoard();
-
-const peças = [
+const pecas = [
     [Z,"red"],
     [S,"green"],
     [T,"yellow"],
@@ -47,104 +44,94 @@ const peças = [
     [J,"orange"]
 ];
 
-// Gera as peças
-
-function randomPiece(){
-    let r = randomN = Math.floor(Math.random() * peças.length) // 0 -> 6
-    return new Piece( peças[r][0],peças[r][1]);
+// gerar peças aleatórias
+function geraPecas(){
+    let r = randomN = Math.floor(Math.random() * pecas.length) // 0 -> 6
+    return new Piece( pecas[r][0],pecas[r][1]);
 }
 
-let p = randomPiece();
+let p = geraPecas();
 
 function Piece(tetromino,cor){
     this.tetromino = tetromino;
     this.cor = cor;
     
-    this.tetrominoN = 0; // Começa do primeiro
-    this.activeTetromino = this.tetromino[this.tetrominoN];
+    this.tetrominoN = 0; // Começa do primeiro padrão
+    this.ativarTetromino = this.tetromino[this.tetrominoN];
     
     this.x = 3;
     this.y = -2;
 }
 
-// Função de preenchimento
-
+// função de preenchimento
 Piece.prototype.fill = function(cor){
-    for( r = 0; r < this.activeTetromino.length; r++){
-        for(c = 0; c < this.activeTetromino.length; c++){
-            // Desenha apenas quadrados ocupados
-            if( this.activeTetromino[r][c]){
-                drawQuad(this.x + c,this.y + r, cor);
+    for( r = 0; r < this.ativarTetromino.length; r++){
+        for(c = 0; c < this.ativarTetromino.length; c++){
+            // we draw only occupied squares
+            if( this.ativarTetromino[r][c]){
+                desenhaQuad(this.x + c,this.y + r, cor);
             }
         }
     }
 }
 
-// Desenha no quadro
-
+// Desenha
 Piece.prototype.draw = function(){
     this.fill(this.cor);
 }
 
-// Apaga uma peça
-
+// Apaga
 Piece.prototype.unDraw = function(){
-    this.fill(VACANT);
+    this.fill(quad);
 }
 
-// Move a peça pra baixo
-
+// Move para baixo
 Piece.prototype.moveDown = function(){
-    if(!this.colisão(0,1,this.activeTetromino)){
+    if(!this.colisao(0,1,this.ativarTetromino)){
         this.unDraw();
         this.y++;
         this.draw();
     }else{
-        // Trava a peça e gera uma nova
+        // Trava e gera uma nova
         this.lock();
-        p = randomPiece();
+        p = geraPecas();
     }
     
 }
-
 // Mover para a direita
 Piece.prototype.moveRight = function(){
-    if(!this.colisão(1,0,this.activeTetromino)){
+    if(!this.colisao(1,0,this.ativarTetromino)){
         this.unDraw();
         this.x++;
         this.draw();
     }
 }
-
 // Mover para a esquerda
 Piece.prototype.moveLeft = function(){
-    if(!this.colisão(-1,0,this.activeTetromino)){
+    if(!this.colisao(-1,0,this.ativarTetromino)){
         this.unDraw();
         this.x--;
         this.draw();
     }
 }
-
-// Girar
+// Gira
 Piece.prototype.rotate = function(){
-    let nextPattern = this.tetromino[(this.tetrominoN + 1)%this.tetromino.length];
+    let novoPad = this.tetromino[(this.tetrominoN + 1)%this.tetromino.length];
     let kick = 0;
     
-    if(this.colisão(0,0,nextPattern)){
-        if(this.x > coluna/2){
-            // Parede direita
-            kick = -1;
+    if(this.colisao(0,0,novoPad)){
+        if(this.x > col/2){
+            kick = -1; 
         }else{
-            // Parede Esqurda
-            kick = 1;
+            kick = 1; 
         }
     }
     
-    if(!this.colisão(kick,0,nextPattern)){
+    if(!this.colisao(kick,0,novoPad)){
         this.unDraw();
         this.x += kick;
         this.tetrominoN = (this.tetrominoN + 1)%this.tetromino.length; // (0+1)%4 => 1
-        this.activeTetromino = this.tetromino[this.tetrominoN];
+        this.ativarTetromino = this.tetromino[this.tetrominoN];
         this.draw();
     }
 }
@@ -152,80 +139,70 @@ Piece.prototype.rotate = function(){
 let score = 0;
 
 Piece.prototype.lock = function(){
-    for( r = 0; r < this.activeTetromino.length; r++){
-        for(c = 0; c < this.activeTetromino.length; c++){
-            if( !this.activeTetromino[r][c]){
+    for( r = 0; r < this.ativarTetromino.length; r++){
+        for(c = 0; c < this.ativarTetromino.length; c++){
+            if( !this.ativarTetromino[r][c]){
                 continue;
             }
-            // Quando chegar no topo = game over
             if(this.y + r < 0){
-                alert("Game Over");
-                // Para a animação
+                alert("Fim");
                 gameOver = true;
                 break;
             }
-            // Trava a peça
-            board[this.y+r][this.x+c] = this.cor;
+            bord[this.y+r][this.x+c] = this.cor;
         }
     }
-    // Remover linha inteira
+    // Remove linhas inteiras
     for(r = 0; r < linha; r++){
-        let isRowFull = true;
-        for( c = 0; c < coluna; c++){
-            isRowFull = isRowFull && (board[r][c] != VACANT);
+        let islinhaFull = true;
+        for( c = 0; c < col; c++){
+            islinhaFull = islinhaFull && (bord[r][c] != quad);
         }
-        if(isRowFull){
-            // Se a linha estiver cheia
-            // Todas as linhas se movem pra baixo
+        if(islinhaFull){
             for( y = r; y > 1; y--){
-                for( c = 0; c < coluna; c++){
-                    board[y][c] = board[y-1][c];
+                for( c = 0; c < col; c++){
+                    bord[y][c] = bord[y-1][c];
                 }
             }
-            for( c = 0; c < coluna; c++){
-                board[0][c] = VACANT;
+            for( c = 0; c < col; c++){
+                bord[0][c] = quad;
             }
-            // Aumenta score em +10
+            // Adiciona +10 aos pontos
             score += 10;
         }
     }
-    // Atualiza a borda
-    drawBoard();
+    // Atualiza o tab
+    tab();
     
-    // Atualiza score
+    // Atualiza a pontuação
     scoreElement.innerHTML = score;
 }
-
 // Função de colisão
 
-Piece.prototype.colisão = function(x,y,piece){
+Piece.prototype.colisao = function(x,y,piece){
     for( r = 0; r < piece.length; r++){
         for(c = 0; c < piece.length; c++){
-            // Se estiver vazio, pule
+            // Caso esteja vazio, pula
             if(!piece[r][c]){
                 continue;
             }
-            // coordenadas das peças antes de se mover
             let newX = this.x + c + x;
             let newY = this.y + r + y;
             
-            // condições
-            if(newX < 0 || newX >= coluna || newY >= linha){
+            if(newX < 0 || newX >= col || newY >= linha){
                 return true;
             }
             if(newY < 0){
                 continue;
             }
-            // verifique se há uma peça no local
-            if( board[newY][newX] != VACANT){
+            if( bord[newY][newX] != quad){
                 return true;
             }
         }
     }
     return false;
 }
-
-// controle
+// Controle
 
 document.addEventListener("keydown",CONTROL);
 
@@ -243,8 +220,7 @@ function CONTROL(event){
         p.moveDown();
     }
 }
-
-// Peça cai a cada 1 segundo
+// Dropar as peças a cada 1 segundo.
 
 let dropStart = Date.now();
 let gameOver = false;
@@ -261,22 +237,3 @@ function drop(){
 }
 
 drop();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
