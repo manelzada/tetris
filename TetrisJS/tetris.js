@@ -1,6 +1,6 @@
 const cvs = document.getElementById("tetris");
-const ctx = cvs.getContext("2d");
-const scoreElement = document.getElementById("score");
+const con = cvs.getContext("2d");
+const scoreSist = document.getElementById("score");
 
 const linha = 20;
 const col = 10;
@@ -9,11 +9,11 @@ const quad = "WHITE";
 
 // Desenhar os quadrados
 function desenhaQuad(x,y,cor){
-    ctx.fillStyle = cor;
-    ctx.fillRect(x*sq,y*sq,sq,sq);
+    con.fillStyle = cor;
+    con.fillRect(x*sq,y*sq,sq,sq);
 
-    ctx.strokeStyle = "BLACK";
-    ctx.strokeRect(x*sq,y*sq,sq,sq);
+    con.strokeStyle = "BLACK";
+    con.strokeRect(x*sq,y*sq,sq,sq);
 }
 
 // Cria o tabuleiro
@@ -67,7 +67,6 @@ function Piece(tetromino,cor){
 Piece.prototype.fill = function(cor){
     for( r = 0; r < this.ativarTetromino.length; r++){
         for(c = 0; c < this.ativarTetromino.length; c++){
-            // we draw only occupied squares
             if( this.ativarTetromino[r][c]){
                 desenhaQuad(this.x + c,this.y + r, cor);
             }
@@ -175,7 +174,7 @@ Piece.prototype.lock = function(){
     tab();
     
     // Atualiza a pontuação
-    scoreElement.innerHTML = score;
+    scoreSist.innerHTML = score;
 }
 // Função de colisão
 
